@@ -424,6 +424,9 @@ export function cleanServiceGroups(groups) {
           // hdhomerun
           tuner,
 
+          // headscale
+          nodes,
+
           // healthchecks
           uuid,
 
@@ -618,6 +621,9 @@ export function cleanServiceGroups(groups) {
         }
         if (type === "hdhomerun") {
           if (tuner !== undefined) cleanedService.widget.tuner = tuner;
+        }
+        if (type === "headscale") {
+          if (nodes !== undefined) cleanedService.widget.nodes = nodes;
         }
         if (type === "healthchecks") {
           if (uuid !== undefined) cleanedService.widget.uuid = uuid;

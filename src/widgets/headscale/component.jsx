@@ -25,19 +25,50 @@ export default function Component({ service }) {
     );
   }
 
-  const {
-    givenName,
-    ipAddresses: [address],
-    lastSeen,
-    online,
-  } = nodeData.node;
+  const { nodes } = widget;
+
+  // default is "all"
+  let filteredNodes = nodeData.nodes;
+  if( nodes === "online" ){
+    filteredNodes = filteredNodes.filter(n=>n.online);
+  }
+  else if ( nodes === "offline" ) {
+    filteredNodes = filteredNodes.filter(n=>!n.online);
+  }
+  else if ( Array.isArray(nodes) ){
+    filteredNodes = filteredNodes.filter(n=>nodes.includes(n.id)||nodes.some(node=>n.forcedTags.includes(node)||n.validTags.includes(node)));
+  }
+
+  filteredNodes.sort((a,b)=>(b.online - a.online) || (a.online ? a.givenName - b.givenName : new Date(a.lastSeen) - new Date(b.lastSeen)));
+
+  if(filteredNodes.length === 1){
+    const node = filteredNodes[0];
+    return (
+      <Container service={service}>
+        <Block label="headscale.name" value={node.givenName || node.name} />
+        <Block label="headscale.address" value={node.ipAddresses[0]}/>
+        <Block label={node.online ? "headscale.status" : "headscale.last_seen"} value={node.online ? t("headscale.online") : t("common.relativeDate", {value: node.lastSeen})}/>
+      </Container>
+    );
+  }
 
   return (
     <Container service={service}>
-      <Block label="headscale.name" value={givenName} />
-      <Block label="headscale.address" value={address} />
-      <Block label="headscale.last_seen" value={t("common.relativeDate", { value: lastSeen })} />
-      <Block label="headscale.status" value={t(online ? "headscale.online" : "headscale.offline")} />
+      <div class="w-full">
+      {filteredNodes.map((node)=> (
+        <Block key={node.id} label="" value={node.givenName || node.name} />
+      ))}
+      </div>
+      <div class="w-full">
+      {filteredNodes.map((node)=> (
+        <Block key={node.id} label="" value={node.ipAddresses[0]}/>
+      ))}
+      </div>
+      <div class="w-full">
+      {filteredNodes.map((node)=> (
+        <Block key={node.id} label="" value={node.online ? t("headscale.online") : t("common.relativeDate", {value: node.lastSeen})}/>
+      ))}
+      </div>
     </Container>
   );
 }
